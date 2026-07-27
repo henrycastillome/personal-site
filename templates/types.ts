@@ -20,3 +20,19 @@ export interface PortfolioData {
   contact: ContactContent | null;
   settings: SiteSettings | null;
 }
+
+/** A template's render entry point. */
+export type TemplateComponent = (props: { data: PortfolioData }) => React.ReactNode;
+
+export interface TemplateMeta {
+  slug: string;
+  name: string;
+  /** One line shown on the admin card. */
+  description: string;
+  /** 'available' renders and is selectable; 'coming-soon' is disabled. */
+  status: 'available' | 'coming-soon';
+}
+
+export interface Template extends TemplateMeta {
+  Component: TemplateComponent;
+}

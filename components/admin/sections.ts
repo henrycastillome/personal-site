@@ -5,6 +5,7 @@ import {
   LuUser,
   LuMail,
   LuChartColumn,
+  LuSwatchBook,
 } from 'react-icons/lu';
 import type { IconType } from 'react-icons';
 
@@ -58,5 +59,11 @@ export const ADMIN_SECTIONS: AdminSection[] = [
     label: 'Analytics',
     blurb: 'Visits, locations and link clicks',
     icon: LuChartColumn,
+  },
+  {
+    href: '/admin/templates',
+    label: 'Templates',
+    blurb: 'Switch your site design',
+    icon: LuSwatchBook,
   },
 ];

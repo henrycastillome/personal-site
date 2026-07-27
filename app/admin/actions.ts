@@ -11,6 +11,7 @@ import {
   number,
   stringArray,
 } from '@/lib/formFields';
+import { isActivatableTemplate } from '@/templates/meta';
 
 const BUCKET = 'henry-portfolio-images';
 
@@ -159,6 +160,40 @@ export async function updateSectionHeadings(
   revalidatePath('/');
   revalidatePath('/admin/projects');
   revalidatePath('/admin/background');
+  return { ok: true };
+}
+
+/**
+ * Sets the active public-site template. The slug is validated against the
+ * registry, so a bad value can never be persisted.
+ */
+export async function updateActiveTemplate(
+  _prev: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
+  const admin = await getAdmin();
+  if (!admin) return UNAUTHORIZED;
+
+  const slug = plain(formData, 'template');
+  if (!isActivatableTemplate(slug)) {
+    return { ok: false, error: 'That template is not available.' };
+  }
+
+  const { data: existing } = await admin.supabase
+    .from('henry_site_settings')
+    .select('id')
+    .limit(1)
+    .maybeSingle();
+
+  const update = { active_template: slug, updated_at: new Date().toISOString() };
+  const { error } = existing?.id
+    ? await admin.supabase.from('henry_site_settings').update(update).eq('id', existing.id)
+    : await admin.supabase.from('henry_site_settings').insert(update);
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath('/');
+  revalidatePath('/admin/templates');
   return { ok: true };
 }
 
