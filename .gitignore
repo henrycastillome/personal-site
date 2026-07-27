@@ -50,8 +50,10 @@ codes.md
 TEMPLATE_TEXT_PLAN.md
 
 # supabase - migrations are applied by hand in the Supabase SQL editor and
-# are kept out of version control at the owner's request
-supabase/
+# are kept out of version control at the owner's request.
+# Leading slash anchors this to the repo-root folder ONLY, so it does not also
+# match lib/supabase/ (the app's Supabase clients, which MUST be committed).
+/supabase/
 
 # claude
 .claude/
