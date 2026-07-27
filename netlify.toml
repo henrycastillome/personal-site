@@ -1,0 +1,41 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+# Netlify's Next.js Runtime. It wires up SSR, middleware, route handlers and
+# Server Actions as functions - none of which work without it.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[build.environment]
+  # Matches the Dockerfile so local and deployed builds use the same runtime.
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+  # Netlify scans build output for the values of environment variables and
+  # fails the build if it finds any. Both NEXT_PUBLIC_* values are *meant* to
+  # be in the client bundle - that is what the prefix means - so without this
+  # every deploy fails with "Secrets scanning found secrets in build output".
+  #
+  # SUPABASE_SERVICE_ROLE_KEY and ADMIN_EMAIL are deliberately NOT listed:
+  # they are server-only, and the scanner should keep failing the build if
+  # either ever leaks into client output.
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY"
+
+# NOTE: there is deliberately no catch-all redirect here.
+#
+# This file previously carried a single-page-app rewrite:
+#
+#   [[redirects]]
+#     from = "/*"
+#     to = "/index.html"
+#     status = 200
+#
+# That is scaffolding from a static-site template and is actively harmful for
+# this app. It swallows every request - the SSR homepage, the /admin routes
+# behind middleware, the /auth route handlers that complete magic-link
+# sign-in, and every Server Action - and points them at an index.html that an
+# App Router build never produces. The Next.js Runtime handles routing.
+#
+# Security headers are set in next.config.ts and applied by the runtime, so
+# they are not duplicated here.

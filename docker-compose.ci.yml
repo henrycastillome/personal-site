@@ -1,0 +1,56 @@
+services:
+  # The quality gate. `npm run ci` builds and runs this.
+  ci:
+    build:
+      context: .
+      target: ci
+    env_file:
+      # Real credentials stay on the host and are injected at run time, so
+      # nothing sensitive is baked into an image layer. Optional: the Dockerfile
+      # supplies placeholders that let `next build` succeed without them.
+      - path: .env.local
+        required: false
+    volumes:
+      # Coverage is written back out so sonar-scanner can read it.
+      - ./coverage:/app/coverage
+    command: npm run ci:local
+
+  # Secret scanning, run against the repo rather than the image.
+  gitleaks:
+    image: zricethezav/gitleaks:latest
+    volumes:
+      - .:/repo:ro
+    command: detect --source=/repo --no-git --redact --verbose
+
+  sonarqube:
+    image: sonarqube:10-community
+    ports:
+      - '9000:9000'
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: 'true'
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_extensions:/opt/sonarqube/extensions
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:9000/api/system/status | grep -q UP']
+      interval: 15s
+      timeout: 5s
+      retries: 40
+
+  sonar-scanner:
+    image: sonarsource/sonar-scanner-cli:latest
+    depends_on:
+      sonarqube:
+        condition: service_healthy
+    environment:
+      SONAR_HOST_URL: http://sonarqube:9000
+      # Generate a token in SonarQube and export it before running `npm run sonar`.
+      SONAR_TOKEN: ${SONAR_TOKEN:-}
+    volumes:
+      - .:/usr/src
+
+volumes:
+  sonarqube_data:
+  sonarqube_logs:
+  sonarqube_extensions:
