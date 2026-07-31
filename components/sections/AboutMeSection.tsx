@@ -9,6 +9,15 @@ interface AboutMeSectionProps {
 }
 
 export function AboutMeSection({ content }: AboutMeSectionProps) {
+  // Extra photos stacked under the primary one. Prefers the gallery; falls back
+  // to the legacy single secondary_image until migration 016 moves it over.
+  const extraImages =
+    content.gallery_images && content.gallery_images.length > 0
+      ? content.gallery_images
+      : content.secondary_image
+        ? [content.secondary_image]
+        : [];
+
   return (
     <Box>
       <RichText
@@ -61,22 +70,24 @@ export function AboutMeSection({ content }: AboutMeSectionProps) {
           )}
         </Box>
 
-        {/* Right column - Profile Image */}
+        {/* Right column - Profile photo(s) */}
         <Box>
           {content.profile_image ? (
-            <Box
-              maxW="400px"
-              borderRadius="lg"
-              overflow="hidden"
-              bg="bg.surface"
-            >
-              <Image
-                src={content.profile_image}
-                alt="About Henry Melo"
-                objectFit="cover"
-                w="full"
-              />
-            </Box>
+            <VStack align="start" gap="6" maxW="400px">
+              <Box borderRadius="lg" overflow="hidden" bg="bg.surface" w="full">
+                <Image
+                  src={content.profile_image}
+                  alt="About Henry Melo"
+                  objectFit="cover"
+                  w="full"
+                />
+              </Box>
+              {extraImages.map((src, index) => (
+                <Box key={index} borderRadius="lg" overflow="hidden" bg="bg.surface" w="full">
+                  <Image src={src} alt="" objectFit="cover" w="full" />
+                </Box>
+              ))}
+            </VStack>
           ) : (
             <Box
               maxW="400px"

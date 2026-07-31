@@ -6,6 +6,7 @@ import { updateAbout, type ActionResult } from '@/app/admin/actions';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { EditorField } from '@/components/admin/FormField';
 import { ImageUploader } from '@/components/admin/ImageUploader';
+import { MultiImageUploader } from '@/components/admin/MultiImageUploader';
 import { TagListInput } from '@/components/admin/TagListInput';
 import { SaveBar } from '@/components/admin/SaveBar';
 import type { AboutContent } from '@/lib/types';
@@ -49,6 +50,14 @@ export function AboutForm({ about }: { about: AboutContent }) {
           name="profile_image"
           folder="about"
           defaultValue={about.profile_image}
+        />
+
+        <MultiImageUploader
+          label="More photos"
+          name="gallery_images"
+          folder="about"
+          defaultValue={about.gallery_images ?? (about.secondary_image ? [about.secondary_image] : [])}
+          hint="Optional. Stacked under the first photo to fill space next to a long bio. Add as many as you like."
         />
 
         <SaveBar result={result} pending={isPending} />

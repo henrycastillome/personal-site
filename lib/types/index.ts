@@ -34,6 +34,10 @@ export interface AboutContent {
   heading: string;
   bio: string; // HTML string from TipTap
   profile_image?: string;
+  /** @deprecated Migrated into gallery_images by migration 016. */
+  secondary_image?: string;
+  /** Extra photos stacked under profile_image, any number. */
+  gallery_images?: string[];
   skills?: string[];
   updated_at: string;
 }

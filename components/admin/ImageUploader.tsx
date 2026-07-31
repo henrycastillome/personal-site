@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { Box, Flex, Image, Input, Text } from '@chakra-ui/react';
 import { LuUpload, LuX } from 'react-icons/lu';
 import { uploadImage } from '@/app/admin/actions';
+import { resizeImage } from '@/lib/resizeImage';
 import { ImageLibrary } from '@/components/admin/ImageLibrary';
 
 interface ImageUploaderProps {
@@ -35,18 +36,26 @@ export function ImageUploader({
     setUploading(true);
     setError(null);
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('folder', folder);
+    try {
+      // Downscale/compress in the browser so big phone photos stay under the
+      // upload limits and the public site loads fast.
+      const processed = await resizeImage(file);
 
-    const result = await uploadImage(formData);
-    setUploading(false);
+      const formData = new FormData();
+      formData.append('file', processed);
+      formData.append('folder', folder);
 
-    if (!result.ok || !result.url) {
-      setError(result.error ?? 'Upload failed.');
-      return;
+      const result = await uploadImage(formData);
+      if (!result.ok || !result.url) {
+        setError(result.error ?? 'Upload failed.');
+        return;
+      }
+      setUrl(result.url);
+    } catch {
+      setError('Upload failed. Try a different image.');
+    } finally {
+      setUploading(false);
     }
-    setUrl(result.url);
   };
 
   return (

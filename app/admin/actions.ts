@@ -70,16 +70,24 @@ export async function updateAbout(
   const admin = await getAdmin();
   if (!admin) return UNAUTHORIZED;
 
-  const { error } = await admin.supabase
-    .from('henry_about_content')
-    .update({
-      heading: rich(formData, 'heading'),
-      bio: rich(formData, 'bio'),
-      profile_image: nullable(formData, 'profile_image'),
-      skills: stringArray(formData, 'skills'),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', plain(formData, 'id'));
+  const id = plain(formData, 'id');
+  const row = {
+    heading: rich(formData, 'heading'),
+    bio: rich(formData, 'bio'),
+    profile_image: nullable(formData, 'profile_image'),
+    gallery_images: stringArray(formData, 'gallery_images'),
+    skills: stringArray(formData, 'skills'),
+    updated_at: new Date().toISOString(),
+  };
+
+  let { error } = await admin.supabase.from('henry_about_content').update(row).eq('id', id);
+  // Tolerate running before migration 016: if the gallery_images column is not
+  // there yet, save without it so the CMS keeps working.
+  if (error && error.message.includes('gallery_images')) {
+    const fallback = { ...row };
+    delete (fallback as { gallery_images?: string[] }).gallery_images;
+    ({ error } = await admin.supabase.from('henry_about_content').update(fallback).eq('id', id));
+  }
 
   if (error) return { ok: false, error: error.message };
 

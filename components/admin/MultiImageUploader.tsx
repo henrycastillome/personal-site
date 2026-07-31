@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { Box, Flex, Image, Input, Text } from '@chakra-ui/react';
 import { LuUpload, LuX } from 'react-icons/lu';
 import { uploadImage } from '@/app/admin/actions';
+import { resizeImage } from '@/lib/resizeImage';
 import { ImageLibrary } from '@/components/admin/ImageLibrary';
 
 interface MultiImageUploaderProps {
@@ -38,8 +39,9 @@ export function MultiImageUploader({
 
     const uploaded: string[] = [];
     for (const file of Array.from(files)) {
+      const processed = await resizeImage(file);
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', processed);
       formData.append('folder', folder);
 
       const result = await uploadImage(formData);
